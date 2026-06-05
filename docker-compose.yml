@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sambat
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: sambat
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sambat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sambat-network
+
+  user-service:
+    build: ./services/user-service
+    environment:
+      DATABASE_URL: postgres://sambat:${DB_PASSWORD}@postgres:5432/user_db
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sambat-network
+
+  rant-service:
+    build: ./services/rant-service
+    environment:
+      DATABASE_URL: postgres://sambat:${DB_PASSWORD}@postgres:5432/rant_db
+      JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_URL: http://user-service:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    networks:
+      - sambat-network
+
+  interaction-service:
+    build: ./services/interaction-service
+    environment:
+      DATABASE_URL: postgres://sambat:${DB_PASSWORD}@postgres:5432/interaction_db
+      JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_URL: http://user-service:3001
+      RANT_SERVICE_URL: http://rant-service:3002
+      ESCALATION_THRESHOLD: ${ESCALATION_THRESHOLD:-10}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rant-service:
+        condition: service_started
+    networks:
+      - sambat-network
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
+      - rant-service
+      - interaction-service
+      - frontend
+    networks:
+      - sambat-network
+
+  frontend:
+    build: ./frontend
+    networks:
+      - sambat-network
+
+volumes:
+  pg_data:
+
+networks:
+  sambat-network:
+    driver: bridge
