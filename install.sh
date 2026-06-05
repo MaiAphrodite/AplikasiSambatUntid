@@ -23,6 +23,7 @@ sudo ufw default allow outgoing
 sudo ufw allow 22/tcp  # SSH
 sudo ufw allow 80/tcp  # HTTP
 sudo ufw allow 443/tcp # HTTPS
+sudo ufw allow 8080/tcp # Dozzle Logging
 
 # Enable firewall without prompting
 sudo ufw --force enable
@@ -55,12 +56,20 @@ if [ ! -f .env ]; then
     # Generate cryptographically secure 64-character hex strings
     JWT_SEC=$(openssl rand -hex 32)
     DB_PASS=$(openssl rand -hex 32)
+    DOZ_PASS=$(openssl rand -hex 16)
     
     # Replace dummy values in the new .env file
     sed -i "s/your_super_secret_jwt_key_here/$JWT_SEC/g" .env
     sed -i "s/your_secure_db_password_here/$DB_PASS/g" .env
+    sed -i "s/dozzle_password_here/$DOZ_PASS/g" .env
     
     echo ".env generated with secure random passwords."
+    echo "============================================="
+    echo "🔐 DOZZLE LOGGING CREDENTIALS"
+    echo "Username: admin_dozzle"
+    echo "Password: $DOZ_PASS"
+    echo "Save this password! It is stored in your .env file."
+    echo "============================================="
 else
     echo ".env already exists, skipping generation."
 fi
