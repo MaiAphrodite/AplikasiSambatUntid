@@ -47,8 +47,15 @@ if ! docker compose version &> /dev/null; then
     sudo apt-get install -y docker-compose-plugin
 fi
 
+# 3.5. Clone Repository
+echo "[4/6] Fetching Application Repository..."
+if [ ! -d "AplikasiSambatUntid" ]; then
+    git clone https://github.com/MaiAphrodite/AplikasiSambatUntid.git
+fi
+cd AplikasiSambatUntid
+
 # 4. Environment Generation
-echo "[4/5] Generating secure environment variables..."
+echo "[5/6] Generating secure environment variables..."
 if [ ! -f .env ]; then
     echo "Creating .env from .env.example..."
     cp .env.example .env
@@ -75,7 +82,7 @@ else
 fi
 
 # 5. Deploy the Stack
-echo "[5/5] Deploying Application Stack via Docker Compose..."
+echo "[6/6] Deploying Application Stack via Docker Compose..."
 # If not run as root but docker requires root, we prefix with sudo
 if groups | grep -wq "docker"; then
     docker compose up -d --build
