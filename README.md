@@ -68,40 +68,21 @@ Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikema
 
 ## 🚀 Cara Deploy (Deployment Guide)
 
-Aplikasi ini dilengkapi dengan alur CI/CD otomatis (*GitHub Actions*) yang akan melakukan *build* dan *push* citra Docker ke **GitHub Container Registry (GHCR)** setiap kali ada *push* ke *branch* `main`.
+Aplikasi ini menggunakan skrip *Bootstrap* otomatis untuk penerapan server yang sangat mudah. Anda hanya memerlukan server *blank* (Ubuntu/Debian). Skrip ini akan memasang Docker, mengatur konfigurasi keamanan UFW (Firewall), menghasilkan kata sandi kriptografis yang aman secara acak di `.env`, dan menjalankan seluruh arsitektur secara otomatis.
 
-### Prasyarat Deployment Server (Production)
-- **Docker** dan **Docker Compose** V2.
-- RAM minimal 1GB (Bun sangat efisien dalam penggunaan memori).
+### One-Line Server Bootstrap (Recommended)
+Masuk ke VPS / Server Anda melalui SSH, lalu jalankan satu baris perintah berikut:
 
-### Langkah-langkah Deploy via Docker Compose
+```bash
+curl -sSL https://raw.githubusercontent.com/MaiAphrodite/AplikasiSambatUntid/main/install.sh | bash
+```
 
-1. **Clone Repositori di Server**
-   ```bash
-   git clone https://github.com/MaiAphrodite/AplikasiSambatUntid.git
-   cd AplikasiSambatUntid
-   ```
-
-2. **Konfigurasi Environment**
-   Salin berkas referensi ke berkas asli:
-   ```bash
-   cp .env.example .env
-   ```
-   Buka berkas `.env` dan ganti rahasia (*secrets*) terutama `JWT_SECRET` dan kata sandi database.
-
-3. **Jalankan Aplikasi**
-   Karena semuanya telah dikemas rapi dalam kontainer, proses *build* dan *run* bisa dilakukan dengan satu perintah:
-   ```bash
-   docker compose up -d --build
-   ```
-
-4. **Akses Aplikasi**
-   - Frontend akan tersedia di `http://ip-server-anda:80`
-   - NGINX secara otomatis menyalurkan semua panggilan `/api/*` ke backend.
+> **Catatan Keamanan**: Skrip ini secara otomatis akan mengaktifkan *UFW Firewall* dan hanya membuka port `22` (SSH), `80` (HTTP), dan `443` (HTTPS). Pastikan server Anda menggunakan port SSH standar (22) sebelum menjalankannya.
 
 ### Alur CI/CD Otomatis
-Jika Anda ingin menerapkan rilis terbaru dari GHCR di masa depan:
+Jika Anda ingin menerapkan rilis terbaru dari *GitHub Container Registry* (GHCR) secara manual di masa depan setelah penerapan awal:
 ```bash
+cd AplikasiSambatUntid
 docker compose pull
 docker compose up -d
 ```
