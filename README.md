@@ -403,4 +403,18 @@ sudo ufw reload
 
 ## Lisensi
 
-MIT License — Dibangun untuk masa depan kampus yang lebih baik.
+Aplikasi Sambat Untid dirilis di bawah **Apache License 2.0**.
+
+Hak Cipta 2026 Mai Aphrodite
+
+Dilisensikan di bawah Apache License, Versi 2.0 ("Lisensi");
+Anda tidak boleh menggunakan file ini kecuali mematuhi Lisensi.
+Anda dapat memperoleh salinan Lisensi di:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Kecuali diwajibkan oleh hukum yang berlaku atau disetujui secara tertulis,
+perangkat lunak yang didistribusikan di bawah Lisensi ini didistribusikan pada
+basis "APA ADANYA", TANPA JAMINAN ATAU KETENTUAN APAPUN, baik tersurat maupun tersirat.
+Lihat Lisensi untuk bahasa spesifik yang mengatur izin dan
+keterbatasan di bawah Lisensi.
