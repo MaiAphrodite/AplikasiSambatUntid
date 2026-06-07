@@ -32,6 +32,7 @@
 | **Upvote / Downvote** | Keluhan yang banyak didukung otomatis naik prioritas. Mekanisme eskalasi otomatis memastikan isu populer segera ditangani. |
 | **Status Tracking** | Setiap Rant memiliki status (`OPEN` → `ACKNOWLEDGED` → `RESOLVED` → `CLOSED`) yang terlihat oleh semua pengguna. |
 | **Kategori Keluhan** | Lima kategori: `akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya` — memudahkan filtrasi dan penanganan. |
+| **Lampiran Gambar** | Pengguna dapat mengunggah bukti foto (max 5MB, JPG/PNG/WebP). Gambar dilayani langsung dari disk oleh NGINX (wire speed) untuk performa optimal. |
 | **Threaded Comments** | Komentar bersarang (nested/recursive) dengan kedalaman maksimal 3 level indentasi. Thread panjang dapat di-collapse. |
 | **Profil Pengguna** | Setiap pengguna memiliki halaman profil yang menampilkan riwayat keluhan dan statistik. |
 | **Role-Based Access** | Dua peran: `student` (pengguna biasa) dan `admin` (dapat mengubah status keluhan dan menghapus konten). |
@@ -46,21 +47,21 @@ Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikema
 ┌─────────────────────────────────────────────────────────────────┐
 │                        NGINX Gateway (:80)                      │
 │         Reverse Proxy — Routing, Rate Limiting, Security        │
-├──────────────┬──────────────┬──────────────┬────────────────────┤
-│   /api/users │  /api/rants  │ /api/inter…  │     / (SPA)        │
-│      ↓       │      ↓       │      ↓       │        ↓           │
-│ ┌──────────┐ │ ┌──────────┐ │ ┌──────────┐ │ ┌──────────────┐  │
-│ │  User    │ │ │  Rant    │ │ │Interact° │ │ │   Frontend   │  │
-│ │ Service  │ │ │ Service  │ │ │ Service  │ │ │  Svelte 5    │  │
-│ │  :3001   │ │ │  :3002   │ │ │  :3003   │ │ │  (SPA)       │  │
-│ └────┬─────┘ │ └────┬─────┘ │ └────┬─────┘ │ └──────────────┘  │
-│      │       │      │       │      │       │                    │
-│      └───────┴──────┴───────┴──────┘       │                    │
-│                     ↓                       │                    │
-│            ┌───────────────┐                │                    │
-│            │  PostgreSQL   │                │                    │
-│            │  3 Databases  │                │                    │
-│            └───────────────┘                │                    │
+├──────────────┬──────────────┬──────────────┬─────────┬──────────┤
+│   /api/users │  /api/rants  │ /api/inter…  │ /uploads│ / (SPA)  │
+│      ↓       │      ↓       │      ↓       │    ↓    │    ↓     │
+│ ┌──────────┐ │ ┌──────────┐ │ ┌──────────┐ │ ┌─────┐ │ ┌──────┐ │
+│ │  User    │ │ │  Rant    │ │ │Interact° │ │ │Disk │ │ │ Front│ │
+│ │ Service  │ │ │ Service  │ │ │ Service  │ │ │Vol. │ │ │ end  │ │
+│ │  :3001   │ │ │  :3002   │ │ │  :3003   │ │ └─────┘ │ └──────┘ │
+│ └────┬─────┘ │ └────┬──┬──┘ │ └────┬─────┘ │    ↑    │          │
+│      │       │      │  └────┼──────┼───────┴────┘    │          │
+│      └───────┴──────┴───────┴──────┘ (Write img)     │          │
+│                     ↓                                │          │
+│            ┌───────────────┐                         │          │
+│            │  PostgreSQL   │                         │          │
+│            │  3 Databases  │                         │          │
+│            └───────────────┘                         │          │
 └─────────────────────────────────────────────────────────────────┘
                       ↕ Docker Socket (read-only)
                ┌──────────────┐
@@ -169,13 +170,19 @@ exec > /var/log/sambat-bootstrap.log 2>&1
 curl -sSL https://raw.githubusercontent.com/MaiAphrodite/AplikasiSambatUntid/main/install.sh | bash
 ```
 
-### Update ke Versi Terbaru
+### Update ke Versi Terbaru & Migrasi Database
+
+Jika Anda melakukan pull pembaruan yang mengubah skema database (seperti penambahan fitur unggah gambar):
 
 ```bash
 cd AplikasiSambatUntid
 git pull origin main
 docker compose up -d --build
+chmod +x migrate-images.sh
+./migrate-images.sh
 ```
+
+Skrip `migrate-images.sh` akan menambahkan kolom `image_url` ke database yang sudah berjalan tanpa menghilangkan data lama Anda.
 
 ---
 
@@ -382,11 +389,12 @@ sudo ufw reload
 │       │   └── index.ts
 │       └── Dockerfile
 ├── nginx/
-│   ├── nginx.conf                    # Reverse proxy rules
+│   ├── nginx.conf                    # Reverse proxy & static upload routing
 │   └── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml                # Includes uploads_data shared volume
 ├── init-db.sql                       # Database schema bootstrap
 ├── install.sh                        # One-click server setup
+├── migrate-images.sh                 # Script to add image_url to existing DBs
 ├── .env.example
 └── README.md
 ```
