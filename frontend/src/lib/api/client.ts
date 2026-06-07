@@ -19,6 +19,8 @@ export async function apiRequest<T = any>(
   if (options.body && typeof options.body === "string" && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json")
   }
+  // If options.body is FormData, we explicitly DO NOT set Content-Type.
+  // The browser will automatically set it to multipart/form-data with the correct boundary.
 
   const response = await fetch(path, { ...options, headers })
 

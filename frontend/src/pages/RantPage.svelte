@@ -173,6 +173,12 @@
         </div>
       </div>
 
+      {#if rant.imageUrl}
+        <div class="article-hero-image">
+          <img src={rant.imageUrl} alt="Lampiran Aspirasi" loading="lazy" />
+        </div>
+      {/if}
+
       <div class="article-body-wrapper">
         {#if auth.isAuthenticated}
           <VoteButton
@@ -374,6 +380,20 @@
   .admin-trace {
     color: #e74c3c;
     font-weight: bold;
+  }
+  .article-hero-image {
+    margin-bottom: 2rem;
+    border: var(--border-thin);
+    background-color: var(--bg-tertiary);
+    text-align: center;
+    padding: 0.5rem;
+  }
+  .article-hero-image img {
+    max-width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
   }
   .article-body-wrapper {
     display: flex;

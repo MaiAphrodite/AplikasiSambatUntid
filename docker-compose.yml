@@ -33,6 +33,8 @@ services:
       DATABASE_URL: postgres://sambat:${DB_PASSWORD}@postgres:5432/rant_db
       JWT_SECRET: ${JWT_SECRET}
       USER_SERVICE_URL: http://user-service:3001
+    volumes:
+      - uploads_data:/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,6 +63,8 @@ services:
     build: ./nginx
     ports:
       - "80:80"
+    volumes:
+      - uploads_data:/uploads:ro
     depends_on:
       - user-service
       - rant-service
@@ -88,6 +92,7 @@ services:
 
 volumes:
   pg_data:
+  uploads_data:
 
 networks:
   sambat-network:

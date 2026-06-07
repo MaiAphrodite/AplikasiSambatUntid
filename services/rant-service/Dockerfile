@@ -3,5 +3,6 @@ WORKDIR /app
 COPY package.json ./
 RUN bun install
 COPY . .
+RUN mkdir -p /uploads
 EXPOSE 3002
 CMD ["bun", "run", "src/index.ts"]

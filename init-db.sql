@@ -27,6 +27,7 @@ CREATE TABLE rants (
                     CHECK (category IN ('akademik', 'fasilitas', 'dosen', 'organisasi', 'lainnya')),
     status          VARCHAR(20)  DEFAULT 'open' NOT NULL
                     CHECK (status IN ('open', 'acknowledged', 'resolved', 'closed')),
+    image_url       VARCHAR(500),
     is_anonymous    BOOLEAN      DEFAULT false NOT NULL,
     upvotes_count   INTEGER      DEFAULT 0 NOT NULL,
     downvotes_count INTEGER      DEFAULT 0 NOT NULL,

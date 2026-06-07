@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia"
+import { randomUUID } from "crypto"
 import { db } from "../db/connection"
 import { rants } from "../db/schema"
 import { eq, and, desc, sql } from "drizzle-orm"
@@ -140,9 +141,41 @@ export const rantsRoutes = new Elysia({ prefix: "/api/rants" })
   .post(
     "/",
     async ({ body, user, set }) => {
-      const { title, body: rantBody, category, isAnonymous = false } = body
+      const { title, body: rantBody, category, isAnonymous, image } = body
+
+      let imageUrl: string | null = null
+
+      if (image && image.size > 0) {
+        // Validation for size (5MB)
+        if (image.size > 5 * 1024 * 1024) {
+          set.status = 400
+          return { error: "Image size must be less than 5MB" }
+        }
+
+        // Validation for type
+        const validTypes = ["image/jpeg", "image/png", "image/webp"]
+        if (!validTypes.includes(image.type)) {
+          set.status = 400
+          return { error: "Image must be JPEG, PNG, or WebP" }
+        }
+
+        const ext = image.type.split("/")[1]
+        const filename = `${randomUUID()}.${ext}`
+        const uploadPath = `/uploads/${filename}`
+
+        try {
+          await Bun.write(uploadPath, image)
+          imageUrl = uploadPath
+        } catch (e) {
+          console.error("Failed to save image:", e)
+          set.status = 500
+          return { error: "Failed to save image" }
+        }
+      }
 
       try {
+        const isAnon = isAnonymous === "true" || isAnonymous === true
+
         const [newRant] = await db
           .insert(rants)
           .values({
@@ -150,7 +183,8 @@ export const rantsRoutes = new Elysia({ prefix: "/api/rants" })
             title,
             body: rantBody,
             category,
-            isAnonymous,
+            isAnonymous: isAnon,
+            imageUrl,
           })
           .returning()
 
@@ -170,7 +204,8 @@ export const rantsRoutes = new Elysia({ prefix: "/api/rants" })
         category: t.String({
           pattern: "^(akademik|fasilitas|dosen|organisasi|lainnya)$",
         }),
-        isAnonymous: t.Optional(t.Boolean()),
+        isAnonymous: t.Optional(t.Union([t.Boolean(), t.String()])),
+        image: t.Optional(t.File()),
       }),
     }
   )
@@ -178,7 +213,7 @@ export const rantsRoutes = new Elysia({ prefix: "/api/rants" })
   .put(
     "/:id",
     async ({ params, body, user, set }) => {
-      const { title, body: rantBody, category, isAnonymous } = body
+      const { title, body: rantBody, category, isAnonymous, image } = body
 
       try {
         const [existing] = await db
@@ -201,7 +236,33 @@ export const rantsRoutes = new Elysia({ prefix: "/api/rants" })
         if (title !== undefined) updateData.title = title
         if (rantBody !== undefined) updateData.body = rantBody
         if (category !== undefined) updateData.category = category
-        if (isAnonymous !== undefined) updateData.isAnonymous = isAnonymous
+        if (isAnonymous !== undefined) {
+            updateData.isAnonymous = isAnonymous === "true" || isAnonymous === true
+        }
+
+        if (image && image.size > 0) {
+          if (image.size > 5 * 1024 * 1024) {
+            set.status = 400
+            return { error: "Image size must be less than 5MB" }
+          }
+          const validTypes = ["image/jpeg", "image/png", "image/webp"]
+          if (!validTypes.includes(image.type)) {
+            set.status = 400
+            return { error: "Image must be JPEG, PNG, or WebP" }
+          }
+          const ext = image.type.split("/")[1]
+          const filename = `${randomUUID()}.${ext}`
+          const uploadPath = `/uploads/${filename}`
+          try {
+            await Bun.write(uploadPath, image)
+            updateData.imageUrl = uploadPath
+          } catch (e) {
+            console.error("Failed to save image:", e)
+            set.status = 500
+            return { error: "Failed to save image" }
+          }
+        }
+
         updateData.updatedAt = new Date()
 
         const [updatedRant] = await db
@@ -229,7 +290,8 @@ export const rantsRoutes = new Elysia({ prefix: "/api/rants" })
         category: t.Optional(t.String({
           pattern: "^(akademik|fasilitas|dosen|organisasi|lainnya)$",
         })),
-        isAnonymous: t.Optional(t.Boolean()),
+        isAnonymous: t.Optional(t.Union([t.Boolean(), t.String()])),
+        image: t.Optional(t.File()),
       }),
     }
   )

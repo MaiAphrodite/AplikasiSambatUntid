@@ -7,6 +7,7 @@ export const rants = pgTable("rants", {
   body: text("body").notNull(),
   category: varchar("category", { length: 20 }).notNull(),
   status: varchar("status", { length: 20 }).default("open").notNull(),
+  imageUrl: varchar("image_url", { length: 500 }),
   isAnonymous: boolean("is_anonymous").default(false).notNull(),
   upvotesCount: integer("upvotes_count").default(0).notNull(),
   downvotesCount: integer("downvotes_count").default(0).notNull(),

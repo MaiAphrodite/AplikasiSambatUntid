@@ -43,6 +43,12 @@
     <span class="date">{formattedDate}</span>
   </div>
 
+  {#if rant.imageUrl}
+    <button class="rant-thumbnail-btn" onclick={openRant}>
+      <img src={rant.imageUrl} alt="Thumbnail" class="rant-thumbnail" loading="lazy" />
+    </button>
+  {/if}
+
   <p class="rant-snippet">
     {rant.body.length > 180 ? rant.body.substring(0, 180) + '…' : rant.body}
   </p>
@@ -164,5 +170,21 @@
   }
   .comments-btn:hover {
     color: var(--color-accent-hover);
+  }
+  .rant-thumbnail-btn {
+    all: unset;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    display: block;
+    width: 100%;
+    border: var(--border-thin);
+    background-color: var(--bg-tertiary);
+    padding: 0.25rem;
+  }
+  .rant-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
   }
 </style>

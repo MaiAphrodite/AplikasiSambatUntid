@@ -8,6 +8,8 @@
   let category = $state("akademik")
   let body = $state("")
   let isAnonymous = $state(false)
+  let imageFile = $state<File | null>(null)
+  let imagePreviewUrl = $state<string | null>(null)
   
   let isSubmitting = $state(false)
   let errorMsg = $state("")
@@ -18,6 +20,28 @@
     }
   })
 
+  function handleImageChange(e: Event) {
+    const input = e.target as HTMLInputElement
+    if (input.files && input.files[0]) {
+      const file = input.files[0]
+      if (file.size > 5 * 1024 * 1024) {
+        errorMsg = "Ukuran gambar tidak boleh lebih dari 5MB"
+        input.value = ""
+        return
+      }
+      imageFile = file
+      imagePreviewUrl = URL.createObjectURL(file)
+    }
+  }
+
+  function removeImage() {
+    imageFile = null
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+      imagePreviewUrl = null
+    }
+  }
+
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     if (!title.trim() || !body.trim() || !category) return
@@ -25,15 +49,19 @@
     isSubmitting = true
     errorMsg = ""
 
+    const formData = new FormData()
+    formData.append("title", title)
+    formData.append("category", category)
+    formData.append("body", body)
+    formData.append("isAnonymous", isAnonymous.toString())
+    if (imageFile) {
+      formData.append("image", imageFile)
+    }
+
     try {
       const res = await apiRequest("/api/rants", {
         method: "POST",
-        body: JSON.stringify({
-          title,
-          category,
-          body,
-          isAnonymous
-        })
+        body: formData
       })
       navigate(`/rant/${res.rant.id}`)
     } catch (e: any) {
@@ -81,6 +109,25 @@
           <option value="organisasi">Birokrasi & Organisasi</option>
           <option value="lainnya">Lain-lain / General Rants</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label for="image-input" class="form-label">Lampiran Bukti (Opsional)</label>
+        {#if imagePreviewUrl}
+          <div class="image-preview-container">
+            <img src={imagePreviewUrl} alt="Preview" class="image-preview" />
+            <button type="button" class="btn btn-secondary remove-img-btn" onclick={removeImage}>Hapus Gambar</button>
+          </div>
+        {:else}
+          <input 
+            id="image-input"
+            type="file" 
+            class="form-control" 
+            accept="image/jpeg, image/png, image/webp"
+            onchange={handleImageChange}
+          />
+          <small class="helper-text">Format: JPG, PNG, WebP. Maks 5MB. Lampirkan foto untuk memperkuat aspirasi Anda.</small>
+        {/if}
       </div>
 
       <div class="form-group">
@@ -194,5 +241,25 @@
   .submit-btn {
     padding: 0.8rem 2rem;
     font-size: 0.9rem;
+  }
+  .image-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-tertiary);
+  }
+  .image-preview {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border: var(--border-thin);
+  }
+  .remove-img-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
   }
 </style>
