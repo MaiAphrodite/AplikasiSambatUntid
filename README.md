@@ -1,4 +1,4 @@
-# 📢 Aplikasi Sambat Untid
+# Aplikasi Sambat Untid
 
 > *Platform Aspirasi dan Keluh Kesah Mahasiswa Universitas Tidar (Untid) yang Aman, Transparan, dan Terstruktur.*
 
@@ -10,35 +10,35 @@
 
 ## Daftar Isi
 
-- [Fitur Utama (The Pitch)](#-fitur-utama-the-pitch)
-- [Arsitektur & Teknologi](#️-arsitektur--teknologi-tech-stack)
-- [Dokumentasi API](#-dokumentasi-api)
-- [Cara Deploy (Production)](#-cara-deploy-production)
-- [Development (Lokal)](#-development-lokal)
-- [Environment Variables](#-environment-variables)
-- [Monitoring & Logging](#-monitoring--logging)
-- [CI/CD Pipeline](#-cicd-pipeline)
-- [Troubleshooting](#-troubleshooting)
-- [Kontribusi](#-kontribusi)
-- [Lisensi](#-lisensi)
+- [Fitur Utama (The Pitch)](#fitur-utama-the-pitch)
+- [Arsitektur & Teknologi](#arsitektur--teknologi-tech-stack)
+- [Dokumentasi API](#dokumentasi-api)
+- [Cara Deploy (Production)](#cara-deploy-production)
+- [Development (Lokal)](#development-lokal)
+- [Environment Variables](#environment-variables)
+- [Monitoring & Logging](#monitoring--logging)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Troubleshooting](#troubleshooting)
+- [Kontribusi](#kontribusi)
+- [Lisensi](#lisensi)
 
 ---
 
-## ✨ Fitur Utama (The Pitch)
+## Fitur Utama (The Pitch)
 
 | Fitur | Deskripsi |
 |---|---|
-| 🔒 **Anonymity Switch** | Pelapor dapat mengaktifkan mode Anonim saat membuat keluhan atau membalas komentar. Identitas terlindungi di UI, namun tetap tercatat secara internal untuk mencegah penyalahgunaan. |
-| 📊 **Upvote / Downvote** | Keluhan yang banyak didukung otomatis naik prioritas. Mekanisme eskalasi otomatis memastikan isu populer segera ditangani. |
-| 🏷️ **Status Tracking** | Setiap Rant memiliki status (`OPEN` → `ACKNOWLEDGED` → `RESOLVED` → `CLOSED`) yang terlihat oleh semua pengguna. |
-| 🗂️ **Kategori Keluhan** | Lima kategori: `akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya` — memudahkan filtrasi dan penanganan. |
-| 💬 **Threaded Comments** | Komentar bersarang (nested/recursive) dengan kedalaman maksimal 3 level indentasi. Thread panjang dapat di-collapse. |
-| 👤 **Profil Pengguna** | Setiap pengguna memiliki halaman profil yang menampilkan riwayat keluhan dan statistik. |
-| 🛡️ **Role-Based Access** | Dua peran: `student` (pengguna biasa) dan `admin` (dapat mengubah status keluhan dan menghapus konten). |
+| **Anonymity Switch** | Pelapor dapat mengaktifkan mode Anonim saat membuat keluhan atau membalas komentar. Identitas terlindungi di UI, namun tetap tercatat secara internal untuk mencegah penyalahgunaan. |
+| **Upvote / Downvote** | Keluhan yang banyak didukung otomatis naik prioritas. Mekanisme eskalasi otomatis memastikan isu populer segera ditangani. |
+| **Status Tracking** | Setiap Rant memiliki status (`OPEN` → `ACKNOWLEDGED` → `RESOLVED` → `CLOSED`) yang terlihat oleh semua pengguna. |
+| **Kategori Keluhan** | Lima kategori: `akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya` — memudahkan filtrasi dan penanganan. |
+| **Threaded Comments** | Komentar bersarang (nested/recursive) dengan kedalaman maksimal 3 level indentasi. Thread panjang dapat di-collapse. |
+| **Profil Pengguna** | Setiap pengguna memiliki halaman profil yang menampilkan riwayat keluhan dan statistik. |
+| **Role-Based Access** | Dua peran: `student` (pengguna biasa) dan `admin` (dapat mengubah status keluhan dan menghapus konten). |
 
 ---
 
-## 🏗️ Arsitektur & Teknologi (Tech Stack)
+## Arsitektur & Teknologi (Tech Stack)
 
 Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikemas dalam Docker Containers dan diorganisir melalui Docker Compose.
 
@@ -87,7 +87,7 @@ Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikema
 
 ---
 
-## 📚 Dokumentasi API
+## Dokumentasi API
 
 Semua endpoint API diakses melalui NGINX reverse proxy di port `80`.
 
@@ -95,22 +95,22 @@ Semua endpoint API diakses melalui NGINX reverse proxy di port `80`.
 
 | Method | Endpoint | Auth | Deskripsi |
 |---|---|---|---|
-| `POST` | `/api/users/register` | ❌ | Registrasi pengguna baru |
-| `POST` | `/api/users/login` | ❌ | Login dan dapatkan JWT token |
-| `GET` | `/api/users/me` | ✅ | Profil pengguna yang sedang login |
-| `PUT` | `/api/users/me` | ✅ | Update profil (display name) |
-| `GET` | `/api/users/profile/:id` | ❌ | Lihat profil pengguna publik |
+| `POST` | `/api/users/register` | No | Registrasi pengguna baru |
+| `POST` | `/api/users/login` | No | Login dan dapatkan JWT token |
+| `GET` | `/api/users/me` | Yes | Profil pengguna yang sedang login |
+| `PUT` | `/api/users/me` | Yes | Update profil (display name) |
+| `GET` | `/api/users/profile/:id` | No | Lihat profil pengguna publik |
 
 ### Rant Service (`/api/rants`)
 
 | Method | Endpoint | Auth | Deskripsi |
 |---|---|---|---|
-| `GET` | `/api/rants` | ❌ | Daftar semua keluhan (dengan filter & sorting) |
-| `GET` | `/api/rants/:id` | ❌ | Detail keluhan spesifik |
-| `POST` | `/api/rants` | ✅ | Buat keluhan baru |
-| `PUT` | `/api/rants/:id` | ✅ | Edit keluhan (pemilik) |
-| `DELETE` | `/api/rants/:id` | ✅ | Hapus keluhan (pemilik / admin) |
-| `PATCH` | `/api/rants/:id/status` | ✅ Admin | Ubah status keluhan |
+| `GET` | `/api/rants` | No | Daftar semua keluhan (dengan filter & sorting) |
+| `GET` | `/api/rants/:id` | No | Detail keluhan spesifik |
+| `POST` | `/api/rants` | Yes | Buat keluhan baru |
+| `PUT` | `/api/rants/:id` | Yes | Edit keluhan (pemilik) |
+| `DELETE` | `/api/rants/:id` | Yes | Hapus keluhan (pemilik / admin) |
+| `PATCH` | `/api/rants/:id/status` | Admin | Ubah status keluhan |
 
 **Query Parameters untuk `GET /api/rants`:**
 - `category` — Filter berdasarkan kategori (`akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya`)
@@ -121,12 +121,12 @@ Semua endpoint API diakses melalui NGINX reverse proxy di port `80`.
 
 | Method | Endpoint | Auth | Deskripsi |
 |---|---|---|---|
-| `POST` | `/api/interactions/votes` | ✅ | Beri vote (upvote/downvote) pada keluhan |
-| `DELETE` | `/api/interactions/votes/:rantId` | ✅ | Hapus vote |
-| `GET` | `/api/interactions/votes/:rantId` | ✅ | Cek status vote pengguna |
-| `GET` | `/api/interactions/comments/:rantId` | ❌ | Daftar komentar pada keluhan |
-| `POST` | `/api/interactions/comments` | ✅ | Tambah komentar (opsional: `parentId` untuk reply) |
-| `DELETE` | `/api/interactions/comments/:id` | ✅ | Hapus komentar (pemilik / admin) |
+| `POST` | `/api/interactions/votes` | Yes | Beri vote (upvote/downvote) pada keluhan |
+| `DELETE` | `/api/interactions/votes/:rantId` | Yes | Hapus vote |
+| `GET` | `/api/interactions/votes/:rantId` | Yes | Cek status vote pengguna |
+| `GET` | `/api/interactions/comments/:rantId` | No | Daftar komentar pada keluhan |
+| `POST` | `/api/interactions/comments` | Yes | Tambah komentar (opsional: `parentId` untuk reply) |
+| `DELETE` | `/api/interactions/comments/:id` | Yes | Hapus komentar (pemilik / admin) |
 
 **Header Autentikasi:**
 ```
@@ -135,7 +135,7 @@ Authorization: Bearer <jwt_token>
 
 ---
 
-## 🚀 Cara Deploy (Production)
+## Cara Deploy (Production)
 
 ### Prasyarat
 - Server Ubuntu/Debian dengan minimal **1GB RAM**
@@ -150,14 +150,14 @@ curl -sSL https://raw.githubusercontent.com/MaiAphrodite/AplikasiSambatUntid/mai
 ```
 
 Skrip ini otomatis melakukan:
-1. ✅ Update sistem dan install dependensi (`curl`, `git`, `ufw`, `openssl`)
-2. 🔥 Konfigurasi UFW Firewall (port 22, 80, 443, 8080 — dengan Docker `FORWARD` policy fix)
-3. 🐳 Install Docker Engine dan Docker Compose plugin
-4. 📦 Clone repositori dari GitHub
-5. 🔐 Generate password kriptografis acak untuk database, JWT, dan Dozzle
-6. 🚀 Build dan jalankan seluruh stack via `docker compose up -d --build`
+1. Update sistem dan install dependensi (`curl`, `git`, `ufw`, `openssl`)
+2. Konfigurasi UFW Firewall (port 22, 80, 443, 8080 — dengan Docker `FORWARD` policy fix)
+3. Install Docker Engine dan Docker Compose plugin
+4. Clone repositori dari GitHub
+5. Generate password kriptografis acak untuk database, JWT, dan Dozzle
+6. Build dan jalankan seluruh stack via `docker compose up -d --build`
 
-> ⚠️ **Peringatan**: Skrip ini mengaktifkan UFW dan hanya membuka port 22 (SSH), 80 (HTTP), 443 (HTTPS), dan 8080 (Dozzle). Pastikan server Anda menggunakan port SSH standar (22).
+> **Peringatan**: Skrip ini mengaktifkan UFW dan hanya membuka port 22 (SSH), 80 (HTTP), 443 (HTTPS), dan 8080 (Dozzle). Pastikan server Anda menggunakan port SSH standar (22).
 
 ### Startup Script (DigitalOcean / Cloud Provider)
 
@@ -179,7 +179,7 @@ docker compose up -d --build
 
 ---
 
-## 💻 Development (Lokal)
+## Development (Lokal)
 
 ### Prasyarat
 
@@ -234,7 +234,7 @@ cd services/interaction-service && bun run check
 
 ---
 
-## 🔑 Environment Variables
+## Environment Variables
 
 | Variable | Deskripsi | Default |
 |---|---|---|
@@ -244,11 +244,11 @@ cd services/interaction-service && bun run check
 | `DOZZLE_USERNAME` | Username untuk login ke Dozzle dashboard | `admin_dozzle` |
 | `DOZZLE_PASSWORD` | Password untuk login ke Dozzle dashboard | `dozzle_password_here` |
 
-> ⚠️ **Jangan pernah** gunakan nilai default di production. Script `install.sh` otomatis men-generate nilai acak yang aman.
+> **Jangan pernah** gunakan nilai default di production. Script `install.sh` otomatis men-generate nilai acak yang aman.
 
 ---
 
-## 📊 Monitoring & Logging
+## Monitoring & Logging
 
 ### Dozzle — Real-time Log Viewer
 
@@ -263,7 +263,7 @@ Aplikasi ini menggunakan **Dozzle** sebagai log viewer berbasis web yang ringan 
 
 ---
 
-## 🔄 CI/CD Pipeline
+## CI/CD Pipeline
 
 Pipeline otomatis berjalan via **GitHub Actions** pada setiap push ke `main`:
 
@@ -285,7 +285,7 @@ Push ke main
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Website tidak bisa diakses setelah deploy
 
@@ -319,7 +319,7 @@ sudo ufw reload
 
 ---
 
-## 🤝 Kontribusi
+## Kontribusi
 
 1. Fork repositori ini
 2. Buat branch fitur (`git checkout -b feat/fitur-baru`)
@@ -393,6 +393,6 @@ sudo ufw reload
 
 ---
 
-## 📜 Lisensi
+## Lisensi
 
-MIT License — Dibangun dengan ❤️ untuk masa depan kampus yang lebih baik.
+MIT License — Dibangun untuk masa depan kampus yang lebih baik.

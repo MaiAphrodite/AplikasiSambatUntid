@@ -6,7 +6,7 @@ REPO_URL="https://github.com/MaiAphrodite/AplikasiSambatUntid.git"
 REPO_DIR="AplikasiSambatUntid"
 
 echo "============================================="
-echo "🚀 Aplikasi Sambat Untid — Server Bootstrap"
+echo "Aplikasi Sambat Untid - Server Bootstrap"
 echo "============================================="
 
 # ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ EOF
     echo ".env generated with secure random passwords."
     echo ""
     echo "============================================="
-    echo "🔐 SAVE THESE CREDENTIALS"
+    echo "SAVE THESE CREDENTIALS"
     echo "---------------------------------------------"
     echo "Database Password : $DB_PASS"
     echo "JWT Secret        : $JWT_SEC"
@@ -116,7 +116,7 @@ SERVER_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || echo "<your-serve
 
 echo ""
 echo "============================================="
-echo "✅ Bootstrap Complete!"
+echo "Bootstrap Complete!"
 echo "---------------------------------------------"
 echo "Frontend    : http://$SERVER_IP"
 echo "Dozzle Logs : http://$SERVER_IP:8080"
