@@ -1,98 +1,125 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
 set -e
 
+REPO_URL="https://github.com/MaiAphrodite/AplikasiSambatUntid.git"
+REPO_DIR="AplikasiSambatUntid"
+
 echo "============================================="
-echo "🚀 Aplikasi Sambat Untid Server Bootstrap"
+echo "🚀 Aplikasi Sambat Untid — Server Bootstrap"
 echo "============================================="
 
-# 1. Update and install basic dependencies
-echo "[1/5] Updating system and installing dependencies..."
+# ---------------------------------------------------------------------------
+# 1. System Dependencies
+# ---------------------------------------------------------------------------
+echo "[1/6] Updating system and installing dependencies..."
 sudo apt-get update -y
 sudo apt-get install -y curl git ufw openssl
 
-# 2. Configure UFW Firewall
-echo "[2/5] Configuring UFW Firewall..."
-# Reset UFW to default deny incoming, allow outgoing
+# ---------------------------------------------------------------------------
+# 2. UFW Firewall (Docker-compatible)
+# ---------------------------------------------------------------------------
+echo "[2/6] Configuring UFW Firewall..."
 sudo ufw --force reset
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 
-# Allow standard ports
-sudo ufw allow 22/tcp  # SSH
-sudo ufw allow 80/tcp  # HTTP
-sudo ufw allow 443/tcp # HTTPS
-sudo ufw allow 8080/tcp # Dozzle Logging
+sudo ufw allow 22/tcp   # SSH
+sudo ufw allow 80/tcp   # HTTP
+sudo ufw allow 443/tcp  # HTTPS
+sudo ufw allow 8080/tcp # Dozzle Logging Dashboard
 
-# Enable firewall without prompting
+# Docker requires ACCEPT on the FORWARD chain to route traffic into containers.
+# UFW defaults FORWARD to DROP, which silently kills all Docker port mappings.
+sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+
 sudo ufw --force enable
 
-# 3. Install Docker if it is not installed
-echo "[3/5] Checking Docker installation..."
+# ---------------------------------------------------------------------------
+# 3. Docker Engine
+# ---------------------------------------------------------------------------
+echo "[3/6] Checking Docker installation..."
 if ! command -v docker &> /dev/null; then
     echo "Docker not found. Installing Docker Engine..."
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sudo sh get-docker.sh
-    sudo usermod -aG docker $USER
-    rm get-docker.sh
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+    sudo sh /tmp/get-docker.sh
+    sudo usermod -aG docker "$USER"
+    rm /tmp/get-docker.sh
     echo "Docker installed successfully."
 else
     echo "Docker is already installed."
 fi
 
-# Ensure docker-compose plugin is available
 if ! docker compose version &> /dev/null; then
     echo "Docker Compose plugin not found. Installing..."
     sudo apt-get install -y docker-compose-plugin
 fi
 
-# 3.5. Clone Repository
+# ---------------------------------------------------------------------------
+# 4. Clone Repository
+# ---------------------------------------------------------------------------
 echo "[4/6] Fetching Application Repository..."
-if [ ! -d "AplikasiSambatUntid" ]; then
-    git clone https://github.com/MaiAphrodite/AplikasiSambatUntid.git
+if [ ! -d "$REPO_DIR" ]; then
+    git clone "$REPO_URL"
 fi
-cd AplikasiSambatUntid
+cd "$REPO_DIR"
 
-# 4. Environment Generation
+# Pull latest changes in case the repo was already cloned
+git pull origin main --ff-only 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
+# 5. Environment Generation
+# ---------------------------------------------------------------------------
 echo "[5/6] Generating secure environment variables..."
 if [ ! -f .env ]; then
-    echo "Creating .env from .env.example..."
     cp .env.example .env
-    
-    # Generate cryptographically secure 64-character hex strings
+
     JWT_SEC=$(openssl rand -hex 32)
-    DB_PASS=$(openssl rand -hex 32)
+    DB_PASS=$(openssl rand -hex 24)
     DOZ_PASS=$(openssl rand -hex 16)
-    
-    # Replace dummy values in the new .env file
-    sed -i "s/your_super_secret_jwt_key_here/$JWT_SEC/g" .env
-    sed -i "s/your_secure_db_password_here/$DB_PASS/g" .env
-    sed -i "s/dozzle_password_here/$DOZ_PASS/g" .env
-    
+
+    # Overwrite the entire .env with final production values
+    cat > .env <<EOF
+DB_PASSWORD=$DB_PASS
+JWT_SECRET=$JWT_SEC
+ESCALATION_THRESHOLD=10
+DOZZLE_USERNAME=admin
+DOZZLE_PASSWORD=$DOZ_PASS
+EOF
+
     echo ".env generated with secure random passwords."
+    echo ""
     echo "============================================="
-    echo "🔐 DOZZLE LOGGING CREDENTIALS"
-    echo "Username: admin_dozzle"
-    echo "Password: $DOZ_PASS"
-    echo "Save this password! It is stored in your .env file."
+    echo "🔐 SAVE THESE CREDENTIALS"
+    echo "---------------------------------------------"
+    echo "Database Password : $DB_PASS"
+    echo "JWT Secret        : $JWT_SEC"
+    echo "Dozzle Username   : admin"
+    echo "Dozzle Password   : $DOZ_PASS"
     echo "============================================="
+    echo ""
 else
     echo ".env already exists, skipping generation."
 fi
 
-# 5. Deploy the Stack
+# ---------------------------------------------------------------------------
+# 6. Deploy
+# ---------------------------------------------------------------------------
 echo "[6/6] Deploying Application Stack via Docker Compose..."
-# If not run as root but docker requires root, we prefix with sudo
 if groups | grep -wq "docker"; then
     docker compose up -d --build
 else
     sudo docker compose up -d --build
 fi
 
+SERVER_IP=$(curl -4 -s --max-time 5 ifconfig.me 2>/dev/null || echo "<your-server-ip>")
+
+echo ""
 echo "============================================="
 echo "✅ Bootstrap Complete!"
-echo "Your server is locked down and the application is starting."
-echo "Please wait a few moments for the database to initialize."
-echo "Access the frontend at: http://$(curl -4 -s ifconfig.me)"
+echo "---------------------------------------------"
+echo "Frontend    : http://$SERVER_IP"
+echo "Dozzle Logs : http://$SERVER_IP:8080"
+echo "============================================="
+echo "Run 'cat $(pwd)/.env' to view your credentials."
 echo "============================================="

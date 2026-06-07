@@ -2,128 +2,397 @@
 
 > *Platform Aspirasi dan Keluh Kesah Mahasiswa Universitas Tidar (Untid) yang Aman, Transparan, dan Terstruktur.*
 
-**Aplikasi Sambat Untid** adalah solusi modern berarsitektur microservices untuk menampung, melacak, dan menindaklanjuti keluhan mahasiswa. Menggabungkan gaya diskusi berbasis *thread* (ala Reddit) dengan fitur pemantauan isu (ala GitHub Issues) dan estetika premium bernuansa *Newspaper/Editorial*, aplikasi ini mendorong transparansi kampus tanpa mengorbankan privasi pelapor.
+[![CI/CD Pipeline](https://github.com/MaiAphrodite/AplikasiSambatUntid/actions/workflows/ci.yml/badge.svg)](https://github.com/MaiAphrodite/AplikasiSambatUntid/actions/workflows/ci.yml)
+
+**Aplikasi Sambat Untid** adalah solusi modern berarsitektur *microservices* untuk menampung, melacak, dan menindaklanjuti keluhan mahasiswa. Menggabungkan gaya diskusi berbasis *thread* (ala Reddit) dengan fitur pemantauan isu (ala GitHub Issues) dan estetika premium bernuansa *Dark Newspaper*, aplikasi ini mendorong transparansi kampus tanpa mengorbankan privasi pelapor.
 
 ---
 
-## ✨ Nilai Jual & Fitur Utama (The Pitch)
+## Daftar Isi
 
-1. **Privasi & Kebebasan Berpendapat (Anonymity Switch)**
-   Setiap pelapor dapat menyalakan mode *Anonim* saat membuat *rant* (keluhan) atau membalas komentar. Identitas terlindungi, mahasiswa bisa jujur tanpa takut sanksi, namun sistem tetap mencatat kepemilikan secara internal untuk mencegah penyalahgunaan.
-   
-2. **Eskalasi Otomatis Berbasis Komunitas (Community-driven Resolution)**
-   Aplikasi dilengkapi sistem *Upvote/Downvote*. Keluhan yang mendapatkan banyak dukungan akan otomatis mendapatkan status prioritas dan visibilitas lebih tinggi agar segera direspons oleh pihak BEM/Kampus.
+- [Fitur Utama (The Pitch)](#-fitur-utama-the-pitch)
+- [Arsitektur & Teknologi](#️-arsitektur--teknologi-tech-stack)
+- [Dokumentasi API](#-dokumentasi-api)
+- [Cara Deploy (Production)](#-cara-deploy-production)
+- [Development (Lokal)](#-development-lokal)
+- [Environment Variables](#-environment-variables)
+- [Monitoring & Logging](#-monitoring--logging)
+- [CI/CD Pipeline](#-cicd-pipeline)
+- [Troubleshooting](#-troubleshooting)
+- [Kontribusi](#-kontribusi)
+- [Lisensi](#-lisensi)
 
-3. **Status Penyelesaian Terbuka (Transparent Tracking)**
-   Setiap *Rant* memiliki *Status Badge* (`OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`). Mahasiswa tidak perlu lagi bertanya-tanya *"Apakah keluhan saya didengar?"*.
+---
 
-4. **Arsitektur Enterprise yang Sangat Cepat (Microservices + Bun)**
-   Dibangun dengan runtime **Bun** dan kerangka web **Elysia.js**, backend kami mampu menangani ribuan *request* per detik (RPS) dengan latensi sub-milidetik. Frontend menggunakan **Svelte 5** terbaru untuk memastikan pengalaman Single Page Application (SPA) yang instan dan mulus tanpa *loading screen* yang mengganggu.
+## ✨ Fitur Utama (The Pitch)
+
+| Fitur | Deskripsi |
+|---|---|
+| 🔒 **Anonymity Switch** | Pelapor dapat mengaktifkan mode Anonim saat membuat keluhan atau membalas komentar. Identitas terlindungi di UI, namun tetap tercatat secara internal untuk mencegah penyalahgunaan. |
+| 📊 **Upvote / Downvote** | Keluhan yang banyak didukung otomatis naik prioritas. Mekanisme eskalasi otomatis memastikan isu populer segera ditangani. |
+| 🏷️ **Status Tracking** | Setiap Rant memiliki status (`OPEN` → `ACKNOWLEDGED` → `RESOLVED` → `CLOSED`) yang terlihat oleh semua pengguna. |
+| 🗂️ **Kategori Keluhan** | Lima kategori: `akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya` — memudahkan filtrasi dan penanganan. |
+| 💬 **Threaded Comments** | Komentar bersarang (nested/recursive) dengan kedalaman maksimal 3 level indentasi. Thread panjang dapat di-collapse. |
+| 👤 **Profil Pengguna** | Setiap pengguna memiliki halaman profil yang menampilkan riwayat keluhan dan statistik. |
+| 🛡️ **Role-Based Access** | Dua peran: `student` (pengguna biasa) dan `admin` (dapat mengubah status keluhan dan menghapus konten). |
 
 ---
 
 ## 🏗️ Arsitektur & Teknologi (Tech Stack)
 
-Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikemas dalam *Docker Containers*.
+Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikemas dalam Docker Containers dan diorganisir melalui Docker Compose.
 
-### 1. Frontend Layer
-- **Framework**: Svelte 5 (Runes) + Vite.
-- **Styling**: Vanilla CSS (CSS Variables) dengan estetika *Dark Mode Newspaper*.
-- **State Management**: Reactive Svelte 5 `$state.raw` & `$derived`.
-
-### 2. Microservices Backend (Bun + Elysia)
-- **User Service** (`:3001`): Menangani registrasi, otentikasi JWT, dan pengelolaan profil.
-- **Rant Service** (`:3002`): Menangani operasi CRUD untuk keluhan/aspirasi utama.
-- **Interaction Service** (`:3003`): Menangani *threading* komentar bersarang (recursive) dan *voting*.
-
-### 3. Database Layer
-- **Database Utama**: PostgreSQL.
-- **ORM**: Drizzle ORM (Type-safe & Blazing Fast).
-
-### 4. Gateway Layer
-- **Reverse Proxy**: NGINX (Merutekan lalu lintas `api/users`, `api/rants`, dll. ke layanan internal masing-masing).
-
----
-
-## 📚 Dokumentasi (Documentations)
-
-### Struktur Repositori
 ```text
-.
-├── frontend/                 # Svelte 5 SPA Application
-├── nginx/                    # Konfigurasi Reverse Proxy NGINX
-├── services/                 # Backend Microservices
-│   ├── user-service/         # Autentikasi & Akun
-│   ├── rant-service/         # Manajemen Keluhan
-│   └── interaction-service/  # Komentar & Voting
-├── docker-compose.yml        # Orkestrasi Kontainer Lokal
-└── init-db.sql               # Skema Inisialisasi Database
+┌─────────────────────────────────────────────────────────────────┐
+│                        NGINX Gateway (:80)                      │
+│         Reverse Proxy — Routing, Rate Limiting, Security        │
+├──────────────┬──────────────┬──────────────┬────────────────────┤
+│   /api/users │  /api/rants  │ /api/inter…  │     / (SPA)        │
+│      ↓       │      ↓       │      ↓       │        ↓           │
+│ ┌──────────┐ │ ┌──────────┐ │ ┌──────────┐ │ ┌──────────────┐  │
+│ │  User    │ │ │  Rant    │ │ │Interact° │ │ │   Frontend   │  │
+│ │ Service  │ │ │ Service  │ │ │ Service  │ │ │  Svelte 5    │  │
+│ │  :3001   │ │ │  :3002   │ │ │  :3003   │ │ │  (SPA)       │  │
+│ └────┬─────┘ │ └────┬─────┘ │ └────┬─────┘ │ └──────────────┘  │
+│      │       │      │       │      │       │                    │
+│      └───────┴──────┴───────┴──────┘       │                    │
+│                     ↓                       │                    │
+│            ┌───────────────┐                │                    │
+│            │  PostgreSQL   │                │                    │
+│            │  3 Databases  │                │                    │
+│            └───────────────┘                │                    │
+└─────────────────────────────────────────────────────────────────┘
+                      ↕ Docker Socket (read-only)
+               ┌──────────────┐
+               │   Dozzle     │
+               │ Log Viewer   │
+               │   :8080      │
+               └──────────────┘
 ```
 
-### Panduan Desain (Code Conventions)
-1. **Frontend**: Semua *state* menggunakan Rune Svelte 5. Jangan gunakan `$:` (Svelte 4 style). *Fetch* data dikelola secara paralel menggunakan `Promise.all` untuk performa tinggi. UI harus *accessible* (a11y) dan menggunakan elemen semantik (`<button>`, bukan `<div onclick>`).
-2. **Backend**: Komunikasi antar microservice dilakukan dengan *internal fetch*. Autentikasi disalurkan lewat NGINX dan diverifikasi secara independen oleh *middleware* JWT di setiap layanan.
+### Stack Teknologi
+
+| Layer | Teknologi | Versi |
+|---|---|---|
+| Frontend | Svelte 5 (Runes) + Vite | 5.x |
+| Styling | Vanilla CSS (Dark Mode Newspaper) | — |
+| Backend Runtime | Bun | Latest |
+| Backend Framework | Elysia.js | 1.2+ |
+| Database | PostgreSQL (Alpine) | 16 |
+| ORM | Drizzle ORM | 0.40+ |
+| Auth | JWT (jose library) | 6.x |
+| Gateway | NGINX | Latest |
+| Logging | Dozzle | Latest |
+| CI/CD | GitHub Actions → GHCR | — |
 
 ---
 
-## 🚀 Cara Deploy (Deployment Guide)
+## 📚 Dokumentasi API
 
-Aplikasi ini menggunakan skrip *Bootstrap* otomatis untuk penerapan server yang sangat mudah. Anda hanya memerlukan server *blank* (Ubuntu/Debian). Skrip ini akan memasang Docker, mengatur konfigurasi keamanan UFW (Firewall), menghasilkan kata sandi kriptografis yang aman secara acak di `.env`, dan menjalankan seluruh arsitektur secara otomatis.
+Semua endpoint API diakses melalui NGINX reverse proxy di port `80`.
 
-### One-Line Server Bootstrap (Recommended)
-Masuk ke VPS / Server Anda melalui SSH, lalu jalankan satu baris perintah berikut:
+### User Service (`/api/users`)
+
+| Method | Endpoint | Auth | Deskripsi |
+|---|---|---|---|
+| `POST` | `/api/users/register` | ❌ | Registrasi pengguna baru |
+| `POST` | `/api/users/login` | ❌ | Login dan dapatkan JWT token |
+| `GET` | `/api/users/me` | ✅ | Profil pengguna yang sedang login |
+| `PUT` | `/api/users/me` | ✅ | Update profil (display name) |
+| `GET` | `/api/users/profile/:id` | ❌ | Lihat profil pengguna publik |
+
+### Rant Service (`/api/rants`)
+
+| Method | Endpoint | Auth | Deskripsi |
+|---|---|---|---|
+| `GET` | `/api/rants` | ❌ | Daftar semua keluhan (dengan filter & sorting) |
+| `GET` | `/api/rants/:id` | ❌ | Detail keluhan spesifik |
+| `POST` | `/api/rants` | ✅ | Buat keluhan baru |
+| `PUT` | `/api/rants/:id` | ✅ | Edit keluhan (pemilik) |
+| `DELETE` | `/api/rants/:id` | ✅ | Hapus keluhan (pemilik / admin) |
+| `PATCH` | `/api/rants/:id/status` | ✅ Admin | Ubah status keluhan |
+
+**Query Parameters untuk `GET /api/rants`:**
+- `category` — Filter berdasarkan kategori (`akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya`)
+- `status` — Filter berdasarkan status (`open`, `acknowledged`, `resolved`, `closed`)
+- `sort` — Urutan (`newest`, `oldest`, `most_upvoted`)
+
+### Interaction Service (`/api/interactions`)
+
+| Method | Endpoint | Auth | Deskripsi |
+|---|---|---|---|
+| `POST` | `/api/interactions/votes` | ✅ | Beri vote (upvote/downvote) pada keluhan |
+| `DELETE` | `/api/interactions/votes/:rantId` | ✅ | Hapus vote |
+| `GET` | `/api/interactions/votes/:rantId` | ✅ | Cek status vote pengguna |
+| `GET` | `/api/interactions/comments/:rantId` | ❌ | Daftar komentar pada keluhan |
+| `POST` | `/api/interactions/comments` | ✅ | Tambah komentar (opsional: `parentId` untuk reply) |
+| `DELETE` | `/api/interactions/comments/:id` | ✅ | Hapus komentar (pemilik / admin) |
+
+**Header Autentikasi:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+---
+
+## 🚀 Cara Deploy (Production)
+
+### Prasyarat
+- Server Ubuntu/Debian dengan minimal **1GB RAM**
+- Akses root atau sudo
+
+### One-Line Bootstrap
+
+SSH ke server Anda, lalu jalankan:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/MaiAphrodite/AplikasiSambatUntid/main/install.sh | bash
 ```
 
-> **Catatan Keamanan**: Skrip ini secara otomatis akan mengaktifkan *UFW Firewall* dan hanya membuka port `22` (SSH), `80` (HTTP), dan `443` (HTTPS). Pastikan server Anda menggunakan port SSH standar (22) sebelum menjalankannya.
+Skrip ini otomatis melakukan:
+1. ✅ Update sistem dan install dependensi (`curl`, `git`, `ufw`, `openssl`)
+2. 🔥 Konfigurasi UFW Firewall (port 22, 80, 443, 8080 — dengan Docker `FORWARD` policy fix)
+3. 🐳 Install Docker Engine dan Docker Compose plugin
+4. 📦 Clone repositori dari GitHub
+5. 🔐 Generate password kriptografis acak untuk database, JWT, dan Dozzle
+6. 🚀 Build dan jalankan seluruh stack via `docker compose up -d --build`
 
-### Alur CI/CD Otomatis
-Jika Anda ingin menerapkan rilis terbaru dari *GitHub Container Registry* (GHCR) secara manual di masa depan setelah penerapan awal:
+> ⚠️ **Peringatan**: Skrip ini mengaktifkan UFW dan hanya membuka port 22 (SSH), 80 (HTTP), 443 (HTTPS), dan 8080 (Dozzle). Pastikan server Anda menggunakan port SSH standar (22).
+
+### Startup Script (DigitalOcean / Cloud Provider)
+
+Jika Anda menggunakan fitur "Startup Scripts" atau "User Data" pada cloud provider:
+
+```bash
+#!/bin/bash
+exec > /var/log/sambat-bootstrap.log 2>&1
+curl -sSL https://raw.githubusercontent.com/MaiAphrodite/AplikasiSambatUntid/main/install.sh | bash
+```
+
+### Update ke Versi Terbaru
+
 ```bash
 cd AplikasiSambatUntid
-docker compose pull
-docker compose up -d
+git pull origin main
+docker compose up -d --build
 ```
 
 ---
 
-## 💻 Development (Cara Menjalankan Secara Lokal)
+## 💻 Development (Lokal)
 
-Jika Anda ingin ikut berkontribusi pada pengembangan aplikasi, Anda membutuhkan **Bun** terinstal di sistem Anda.
+### Prasyarat
 
-1. **Jalankan Database via Docker**
-   Hanya nyalakan kontainer postgres di latar belakang:
-   ```bash
-   docker compose up -d postgres
-   ```
+| Tool | Versi | Install |
+|---|---|---|
+| Bun | Latest | `curl -fsSL https://bun.sh/install \| bash` |
+| Docker | 24+ | `curl -fsSL https://get.docker.com \| bash` |
+| Git | 2.x+ | `sudo apt install git` |
 
-2. **Jalankan Semua Layanan Secara Bersamaan**
-   Kami tidak menggunakan *monorepo manager* berat. Anda cukup masuk ke masing-masing *directory* atau menjalankan layanan spesifik:
-   ```bash
-   # Di Terminal 1 (Frontend)
-   cd frontend && bun install && bun run dev
+### Langkah-langkah
 
-   # Di Terminal 2 (User Service)
-   cd services/user-service && bun install && bun run dev
+**1. Clone dan Setup Environment**
+```bash
+git clone https://github.com/MaiAphrodite/AplikasiSambatUntid.git
+cd AplikasiSambatUntid
+cp .env.example .env
+```
 
-   # Di Terminal 3 (Rant Service)
-   cd services/rant-service && bun install && bun run dev
+**2. Jalankan Database**
+```bash
+docker compose up -d postgres
+```
 
-   # Di Terminal 4 (Interaction Service)
-   cd services/interaction-service && bun install && bun run dev
-   ```
+**3. Jalankan Semua Layanan**
 
-3. **Type Checking (Doctor)**
-   Pastikan kode tidak rusak sebelum *push* ke repositori:
-   ```bash
-   # Validasi seluruh proyek
-   cd frontend && bun run check
-   cd services/user-service && bun run check
-   cd services/rant-service && bun run check
-   cd services/interaction-service && bun run check
-   ```
+Anda memerlukan 4 terminal terpisah:
+
+```bash
+# Terminal 1 — Frontend (http://localhost:5173)
+cd frontend && bun install && bun run dev
+
+# Terminal 2 — User Service (:3001)
+cd services/user-service && bun install && bun run dev
+
+# Terminal 3 — Rant Service (:3002)
+cd services/rant-service && bun install && bun run dev
+
+# Terminal 4 — Interaction Service (:3003)
+cd services/interaction-service && bun install && bun run dev
+```
+
+**4. Type Checking (Doctor)**
+
+Pastikan kode bebas dari error sebelum commit:
+
+```bash
+cd frontend && bun run check
+cd services/user-service && bun run check
+cd services/rant-service && bun run check
+cd services/interaction-service && bun run check
+```
 
 ---
-*Dibangun dengan ❤️ untuk masa depan kampus yang lebih baik.*
+
+## 🔑 Environment Variables
+
+| Variable | Deskripsi | Default |
+|---|---|---|
+| `DB_PASSWORD` | Password untuk PostgreSQL | `sambat_secret_2026` |
+| `JWT_SECRET` | Secret key untuk signing JWT token | `supersecret_jwt_key_change_in_production` |
+| `ESCALATION_THRESHOLD` | Jumlah upvote untuk eskalasi otomatis | `10` |
+| `DOZZLE_USERNAME` | Username untuk login ke Dozzle dashboard | `admin_dozzle` |
+| `DOZZLE_PASSWORD` | Password untuk login ke Dozzle dashboard | `dozzle_password_here` |
+
+> ⚠️ **Jangan pernah** gunakan nilai default di production. Script `install.sh` otomatis men-generate nilai acak yang aman.
+
+---
+
+## 📊 Monitoring & Logging
+
+### Dozzle — Real-time Log Viewer
+
+Aplikasi ini menggunakan **Dozzle** sebagai log viewer berbasis web yang ringan (~15MB RAM). Dozzle membaca stream `stdout`/`stderr` dari semua container melalui Docker socket secara read-only.
+
+**Akses:** `http://<server-ip>:8080`
+
+**Fitur:**
+- Live-streaming log dari semua container
+- Pencarian dan filter berbasis regex
+- Tidak memerlukan database atau agen tambahan
+
+---
+
+## 🔄 CI/CD Pipeline
+
+Pipeline otomatis berjalan via **GitHub Actions** pada setiap push ke `main`:
+
+```text
+Push ke main
+    │
+    ▼
+┌──────────────────────┐
+│  Doctor / Code Check  │  ← svelte-check + tsc --noEmit (semua service)
+└──────────┬───────────┘
+           │ (jika lulus)
+           ▼
+┌──────────────────────┐
+│  Build & Push GHCR   │  ← Matrix build: frontend, user, rant, interaction
+└──────────────────────┘
+```
+
+**Image Registry:** `ghcr.io/maiaphrodite/aplikasisambatuntid-<service>:latest`
+
+---
+
+## 🔧 Troubleshooting
+
+### Website tidak bisa diakses setelah deploy
+
+**Gejala:** Browser timeout saat mengakses `http://<ip>`.
+
+**Penyebab:** UFW `DEFAULT_FORWARD_POLICY` diset `DROP`, memblokir Docker port forwarding.
+
+**Solusi:** Script `install.sh` terbaru sudah menangani ini otomatis. Jika Anda deploy dengan versi lama:
+```bash
+sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+sudo ufw reload
+```
+
+### Container keluar terus-menerus (restart loop)
+
+**Periksa log:**
+```bash
+docker compose logs -f --tail 50
+```
+
+**Penyebab umum:**
+- Database belum siap → pastikan healthcheck PostgreSQL berjalan
+- `.env` tidak ada atau kosong → jalankan ulang `install.sh`
+
+### Port 8080 (Dozzle) tidak bisa diakses
+
+```bash
+sudo ufw allow 8080/tcp
+sudo ufw reload
+```
+
+---
+
+## 🤝 Kontribusi
+
+1. Fork repositori ini
+2. Buat branch fitur (`git checkout -b feat/fitur-baru`)
+3. Pastikan semua doctor check lulus (`bun run check` di setiap package)
+4. Commit dengan format [Conventional Commits](https://www.conventionalcommits.org/):
+   - `feat:` untuk fitur baru
+   - `fix:` untuk perbaikan bug
+   - `docs:` untuk dokumentasi
+   - `ci:` untuk perubahan pipeline
+5. Buat Pull Request ke `main`
+
+### Struktur Repositori
+
+```text
+.
+├── .github/workflows/ci.yml     # GitHub Actions CI/CD pipeline
+├── frontend/                     # Svelte 5 SPA
+│   ├── src/
+│   │   ├── lib/
+│   │   │   ├── api/client.ts         # HTTP client wrapper
+│   │   │   ├── components/           # Reusable UI components
+│   │   │   │   ├── CategoryBadge.svelte
+│   │   │   │   ├── CommentThread.svelte
+│   │   │   │   ├── Navbar.svelte
+│   │   │   │   ├── RantCard.svelte
+│   │   │   │   ├── StatusBadge.svelte
+│   │   │   │   └── VoteButton.svelte
+│   │   │   ├── router.svelte.ts      # Hash-based SPA router
+│   │   │   └── stores/auth.svelte.ts # JWT auth state
+│   │   ├── pages/                    # Route pages
+│   │   │   ├── Home.svelte
+│   │   │   ├── Login.svelte
+│   │   │   ├── CreateRant.svelte
+│   │   │   ├── RantPage.svelte
+│   │   │   └── Profile.svelte
+│   │   └── App.svelte
+│   ├── Dockerfile
+│   └── nginx.conf                    # Frontend static serve config
+├── services/
+│   ├── user-service/
+│   │   ├── src/
+│   │   │   ├── db/                   # Drizzle schema & connection
+│   │   │   ├── routes/               # Auth, profile, internal
+│   │   │   ├── middleware/auth.ts
+│   │   │   └── index.ts
+│   │   └── Dockerfile
+│   ├── rant-service/
+│   │   ├── src/
+│   │   │   ├── db/
+│   │   │   ├── routes/               # CRUD rants, internal
+│   │   │   ├── middleware/auth.ts
+│   │   │   └── index.ts
+│   │   └── Dockerfile
+│   └── interaction-service/
+│       ├── src/
+│       │   ├── db/
+│       │   ├── routes/               # Comments, votes
+│       │   ├── middleware/auth.ts
+│       │   ├── utils/escalation.ts   # Auto-escalation logic
+│       │   └── index.ts
+│       └── Dockerfile
+├── nginx/
+│   ├── nginx.conf                    # Reverse proxy rules
+│   └── Dockerfile
+├── docker-compose.yml
+├── init-db.sql                       # Database schema bootstrap
+├── install.sh                        # One-click server setup
+├── .env.example
+└── README.md
+```
+
+---
+
+## 📜 Lisensi
+
+MIT License — Dibangun dengan ❤️ untuk masa depan kampus yang lebih baik.
