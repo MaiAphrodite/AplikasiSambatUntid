@@ -61,8 +61,6 @@ services:
 
   nginx:
     build: ./nginx
-    ports:
-      - "80:80"
     volumes:
       - uploads_data:/uploads:ro
     depends_on:
@@ -75,6 +73,17 @@ services:
 
   frontend:
     build: ./frontend
+    networks:
+      - sambat-network
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - nginx
+    restart: unless-stopped
     networks:
       - sambat-network
 

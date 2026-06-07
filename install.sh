@@ -87,6 +87,10 @@ DOZZLE_USERNAME=admin
 DOZZLE_PASSWORD=$DOZ_PASS
 EOF
 
+    echo "Cloudflare Tunnel Setup:"
+    read -p "Enter your Cloudflare Tunnel Token (leave blank if not using): " CF_TOKEN
+    echo "CLOUDFLARE_TUNNEL_TOKEN=$CF_TOKEN" >> .env
+
     echo ".env generated with secure random passwords."
     echo ""
     echo "============================================="
@@ -118,7 +122,7 @@ echo ""
 echo "============================================="
 echo "Bootstrap Complete!"
 echo "---------------------------------------------"
-echo "Frontend    : http://$SERVER_IP"
+echo "Frontend    : http://$SERVER_IP (or via Cloudflare Tunnel)"
 echo "Dozzle Logs : http://$SERVER_IP:8080"
 echo "============================================="
 echo "Run 'cat $(pwd)/.env' to view your credentials."
