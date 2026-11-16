@@ -2,7 +2,7 @@
 
 > *Platform Aspirasi dan Keluh Kesah Mahasiswa Universitas Tidar (Untid) yang Aman, Transparan, dan Terstruktur.*
 
-[![CI/CD Pipeline](https://github.com/MaiAphrodite/AplikasiSambatUntid/actions/workflows/ci.yml/badge.svg)](https://github.com/MaiAphrodite/AplikasiSambatUntid/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/MaiAphrodite/AplikasiSambatUntid/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MaiAphrodite/AplikasiSambatUntid/actions/workflows/ci.yml)
 
 **Aplikasi Sambat Untid** adalah solusi modern berarsitektur *microservices* untuk menampung, melacak, dan menindaklanjuti keluhan mahasiswa. Menggabungkan gaya diskusi berbasis *thread* (ala Reddit) dengan fitur pemantauan isu (ala GitHub Issues) dan estetika premium bernuansa *Dark Newspaper*, aplikasi ini mendorong transparansi kampus tanpa mengorbankan privasi pelapor.
 
@@ -31,7 +31,7 @@
 | **Anonymity Switch** | Pelapor dapat mengaktifkan mode Anonim saat membuat keluhan atau membalas komentar. Identitas terlindungi di UI, namun tetap tercatat secara internal untuk mencegah penyalahgunaan. |
 | **Upvote / Downvote** | Keluhan yang banyak didukung otomatis naik prioritas. Mekanisme eskalasi otomatis memastikan isu populer segera ditangani. |
 | **Status Tracking** | Setiap Rant memiliki status (`OPEN` → `ACKNOWLEDGED` → `RESOLVED` → `CLOSED`) yang terlihat oleh semua pengguna. |
-| **Kategori Keluhan** | Lima kategori: `akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya` — memudahkan filtrasi dan penanganan. |
+| **Kategori Keluhan** | Lima kategori: `akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya`, memudahkan filtrasi dan penanganan. |
 | **Lampiran Gambar** | Pengguna dapat mengunggah bukti foto (max 5MB, JPG/PNG/WebP). Gambar dilayani langsung dari disk oleh NGINX (wire speed) untuk performa optimal. |
 | **Threaded Comments** | Komentar bersarang (nested/recursive) dengan kedalaman maksimal 3 level indentasi. Thread panjang dapat di-collapse. |
 | **Profil Pengguna** | Setiap pengguna memiliki halaman profil yang menampilkan riwayat keluhan dan statistik. |
@@ -46,7 +46,7 @@ Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikema
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        NGINX Gateway (:80)                      │
-│         Reverse Proxy — Routing, Rate Limiting, Security        │
+│         Reverse Proxy - Routing, Rate Limiting, Security        │
 ├──────────────┬──────────────┬──────────────┬─────────┬──────────┤
 │   /api/users │  /api/rants  │ /api/inter…  │ /uploads│ / (SPA)  │
 │      ↓       │      ↓       │      ↓       │    ↓    │    ↓     │
@@ -75,8 +75,8 @@ Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikema
 
 | Layer | Teknologi | Versi |
 |---|---|---|
-| Frontend | Svelte 5 (Runes) + Vite | 5.x |
-| Styling | Vanilla CSS (Dark Mode Newspaper) | — |
+| Frontend | Svelte 5 (Runes) + Vite | 5.x / 8.x |
+| Styling | Vanilla CSS (Dark Mode Newspaper) | n/a |
 | Backend Runtime | Bun | Latest |
 | Backend Framework | Elysia.js | 1.2+ |
 | Database | PostgreSQL (Alpine) | 16 |
@@ -84,7 +84,7 @@ Aplikasi ini menggunakan pendekatan **Microservices** murni yang semuanya dikema
 | Auth | JWT (jose library) | 6.x |
 | Gateway | NGINX | Latest |
 | Logging | Dozzle | Latest |
-| CI/CD | GitHub Actions → GHCR | — |
+| CI/CD | GitHub Actions → GHCR | n/a |
 
 ---
 
@@ -114,9 +114,9 @@ Semua endpoint API diakses melalui NGINX reverse proxy di port `80`.
 | `PATCH` | `/api/rants/:id/status` | Admin | Ubah status keluhan |
 
 **Query Parameters untuk `GET /api/rants`:**
-- `category` — Filter berdasarkan kategori (`akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya`)
-- `status` — Filter berdasarkan status (`open`, `acknowledged`, `resolved`, `closed`)
-- `sort` — Urutan (`newest`, `oldest`, `most_upvoted`)
+- `category`: Filter berdasarkan kategori (`akademik`, `fasilitas`, `dosen`, `organisasi`, `lainnya`)
+- `status`: Filter berdasarkan status (`open`, `acknowledged`, `resolved`, `closed`)
+- `sort`: Urutan (`newest`, `oldest`, `most_upvoted`)
 
 ### Interaction Service (`/api/interactions`)
 
@@ -152,7 +152,7 @@ curl -sSL https://raw.githubusercontent.com/MaiAphrodite/AplikasiSambatUntid/mai
 
 Skrip ini otomatis melakukan:
 1. Update sistem dan install dependensi (`curl`, `git`, `ufw`, `openssl`)
-2. Konfigurasi UFW Firewall (port 22, 80, 443, 8080 — dengan Docker `FORWARD` policy fix)
+2. Konfigurasi UFW Firewall (port 22, 80, 443, 8080: dengan Docker `FORWARD` policy fix)
 3. Install Docker Engine dan Docker Compose plugin
 4. Clone repositori dari GitHub
 5. Generate password kriptografis acak untuk database, JWT, dan Dozzle
@@ -215,16 +215,16 @@ docker compose up -d postgres
 Anda memerlukan 4 terminal terpisah:
 
 ```bash
-# Terminal 1 — Frontend (http://localhost:5173)
+# Terminal 1: Frontend (http://localhost:5173)
 cd frontend && bun install && bun run dev
 
-# Terminal 2 — User Service (:3001)
+# Terminal 2: User Service (:3001)
 cd services/user-service && bun install && bun run dev
 
-# Terminal 3 — Rant Service (:3002)
+# Terminal 3: Rant Service (:3002)
 cd services/rant-service && bun install && bun run dev
 
-# Terminal 4 — Interaction Service (:3003)
+# Terminal 4: Interaction Service (:3003)
 cd services/interaction-service && bun install && bun run dev
 ```
 
@@ -250,6 +250,7 @@ cd services/interaction-service && bun run check
 | `ESCALATION_THRESHOLD` | Jumlah upvote untuk eskalasi otomatis | `10` |
 | `DOZZLE_USERNAME` | Username untuk login ke Dozzle dashboard | `admin_dozzle` |
 | `DOZZLE_PASSWORD` | Password untuk login ke Dozzle dashboard | `dozzle_password_here` |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Token Cloudflare Tunnel untuk service `cloudflared` (kosongkan jika tidak memakai tunnel) | `your_cloudflare_tunnel_token_here` |
 
 > **Jangan pernah** gunakan nilai default di production. Script `install.sh` otomatis men-generate nilai acak yang aman.
 
@@ -257,7 +258,7 @@ cd services/interaction-service && bun run check
 
 ## Monitoring & Logging
 
-### Dozzle — Real-time Log Viewer
+### Dozzle: Real-time Log Viewer
 
 Aplikasi ini menggunakan **Dozzle** sebagai log viewer berbasis web yang ringan (~15MB RAM). Dozzle membaca stream `stdout`/`stderr` dari semua container melalui Docker socket secara read-only.
 
